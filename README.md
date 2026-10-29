@@ -322,4 +322,281 @@ Potential preprocessing and validation leakage has not yet been fully resolved. 
 
 Before treating them as reliable generalization estimates, the pipeline needs to be checked for:
 
-1. Pre
+1. Preprocessing or feature selection performed before splitting the data.
+2. Any outcome-derived or post-outcome variables entering the predictors.
+3. Inconsistent event coding or handling of censored observations.
+4. Inappropriate reuse of the test set during model development.
+5. Validation splits that do not reflect the intended use of the model.
+
+The final results should be regenerated after these checks have been completed.
+
+## Visualizations and Reports
+
+The current run generates seven figures and four reports.
+
+These artifacts are intended to document the data audit, survival analysis, and model evaluation. Their precise contents should be confirmed from the generated filenames and report headings in the repository.
+
+Suggested artifacts to highlight here include:
+
+- Dataset audit and missing-value summaries.
+- Kaplan–Meier survival curves.
+- Exploratory survival comparisons by clinical group.
+- Cox model results and diagnostic plots.
+- Random Survival Forest evaluation results.
+- Model comparison summaries.
+
+For GitHub, place final figures in `results/figures/` and reports in `reports/`. If the actual pipeline uses different output paths, update the README to match those paths.
+
+## Project Structure
+
+The following structure reflects the current core modules and outputs. Some generated filenames may differ depending on the latest run.
+
+```text
+OncoTrace/
+├── data/
+│   ├── raw/
+│   │   └── METABRIC_RNA_Mutation.csv
+│   └── processed/
+│       └── processed_dataset.csv
+├── rust/
+│   └── src/
+│       └── main.rs
+├── src/
+│   └── oncotrace/
+│       ├── audit_target.py
+│       ├── preprocess.py
+│       ├── baseline_survival.py
+│       ├── cox_model.py
+│       ├── ml_survival.py
+│       ├── advanced_visualizations.py
+│       └── data_audit.py
+├── notebooks/
+│   └── exploratory_analysis.ipynb
+├── tests/
+│   └── ...
+├── results/
+│   ├── figures/
+│   └── tables/
+├── reports/
+│   └── ...
+├── main.py
+├── README.md
+└── ...
+```
+
+### Main components
+
+| File or directory | Responsibility |
+|---|---|
+| `main.py` | Orchestrates the end-to-end workflow |
+| `rust/src/main.rs` | Validates raw CSV input and records |
+| `data_audit.py` | Inspects data quality and schema characteristics |
+| `audit_target.py` | Checks survival-target and predictor definitions |
+| `preprocess.py` | Prepares the data for analysis |
+| `baseline_survival.py` | Performs baseline survival analysis |
+| `cox_model.py` | Fits and evaluates the Cox model |
+| `ml_survival.py` | Implements machine learning survival analysis |
+| `advanced_visualizations.py` | Produces analytical figures |
+| `tests/` | Contains automated checks for core functionality |
+| `notebooks/` | Supports interactive exploration |
+| `results/` | Stores generated figures and tabular outputs |
+| `reports/` | Stores analysis summaries and reports |
+
+## Installation and Setup
+
+### Prerequisites
+
+- Python 3.11 or another Python version compatible with the project's pinned dependencies.
+- Rust and Cargo.
+- Git.
+- The METABRIC CSV file, obtained from an authorized source.
+- A terminal and a code editor.
+
+The exact supported Python version should be confirmed against the installed dependencies before publishing a definitive environment specification.
+
+### 1. Clone the repository
+
+```bash
+git clone <YOUR_GITHUB_REPOSITORY_URL>
+cd OncoTrace
+```
+
+Replace the placeholder with the actual repository URL.
+
+### 2. Create a Python virtual environment
+
+On Linux:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+On Windows PowerShell:
+
+```powershell
+py -m venv .venv
+.venv\Scripts\Activate.ps1
+```
+
+### 3. Install Python dependencies
+
+If the repository contains a `requirements.txt`:
+
+```bash
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+If it uses another dependency manager, follow the committed lockfile or project configuration instead. The dependency file should reflect the versions that were actually tested.
+
+### 4. Verify Rust
+
+```bash
+rustc --version
+cargo --version
+```
+
+Both commands should return version information.
+
+### 5. Place the dataset
+
+Ensure the raw CSV is available at:
+
+```text
+data/raw/METABRIC_RNA_Mutation.csv
+```
+
+Do not commit the dataset to Git unless its distribution terms explicitly permit it.
+
+## Running OncoTrace
+
+From the repository root, activate the Python virtual environment and run:
+
+```bash
+python main.py
+```
+
+The entry point coordinates the validation and analysis stages. On successful execution, the pipeline should produce its configured processed data, figures, and reports.
+
+The Rust component can also be built and checked independently:
+
+```bash
+cd rust
+cargo check
+cargo run --release
+```
+
+**Note:** The Rust command assumes the validator's input path and configuration support execution from the `rust/` directory. If the executable expects to be launched from the repository root, use the path and working directory specified in the actual implementation.
+
+Run the Python pipeline from the repository root unless the project configuration explicitly specifies otherwise.
+
+## Testing
+
+OncoTrace currently has **10 passing automated tests** in its latest recorded run.
+
+Run the test suite using:
+
+```bash
+pytest
+```
+
+The test suite is intended to help detect regressions in core behaviour. The exact coverage depends on the test cases present in the repository; passing tests do not, by themselves, establish the scientific validity of the model or its evaluation results.
+
+Useful additional tests include:
+
+- Malformed CSV files and inconsistent column counts.
+- Missing or invalid survival times.
+- Invalid event-indicator values.
+- Missing-value handling and categorical encoding.
+- Exclusion of outcome leakage from model features.
+- Correct fitting of preprocessing steps within validation folds.
+- Reproducible model evaluation and output generation.
+
+## Reproducibility
+
+Reproducibility is an important part of OncoTrace's design.
+
+To improve reproducibility, the project should maintain:
+
+- A dependency file with pinned or otherwise documented package versions.
+- The Rust `Cargo.toml` and `Cargo.lock` files.
+- Documented dataset provenance and permitted usage.
+- Fixed random seeds wherever applicable.
+- A clear definition of survival duration and event coding.
+- A record of the features used by each model.
+- A consistent train/validation/test strategy.
+- Saved evaluation metrics and model configuration.
+- Automated tests for critical data-processing steps.
+
+The current pipeline has been executed end to end, but a fully reproducible research release also requires documenting the environment, data source, and final validated evaluation procedure.
+
+## Current Limitations
+
+OncoTrace is an active research and learning project, and several limitations matter when interpreting its output.
+
+### 1. Preliminary validation results
+
+The current evaluation may be affected by leakage in preprocessing or validation. The reported scores should not be treated as definitive until the pipeline has been audited and the models have been reevaluated.
+
+### 2. Dataset scope
+
+The current experiment uses one breast cancer dataset. Performance on this dataset does not demonstrate generalization to other hospitals, populations, datasets, or clinical settings.
+
+### 3. Observational data
+
+Associations found in observational data do not establish causation. A feature associated with survival is not automatically a causal risk factor or a useful treatment target.
+
+### 4. Survival-model assumptions
+
+Cox proportional hazards models require careful assessment of their assumptions. Tree-based survival models have different limitations and may still overfit, particularly when the sample size is limited relative to the number of candidate features.
+
+### 5. Missing data and mixed types
+
+The raw dataset contains missing values and mixed-type columns. Decisions about exclusion, imputation, and encoding can affect model behaviour and must be documented.
+
+### 6. No clinical validation
+
+OncoTrace has not been established as a clinically validated prognostic system. Its results should not be used to diagnose cancer, estimate an individual's prognosis, select treatment, or replace professional medical judgement.
+
+## Planned Improvements
+
+The next stages of development should focus on scientific reliability before adding complexity.
+
+- [ ] Resolve preprocessing and validation leakage.
+- [ ] Verify the exact event coding and censoring conventions.
+- [ ] Review all predictors for target leakage and post-outcome information.
+- [ ] Fit imputers, encoders, and feature selectors within each training fold.
+- [ ] Define a consistent and documented evaluation protocol.
+- [ ] Add checks for proportional hazards and other model assumptions.
+- [ ] Report uncertainty and confidence intervals where appropriate.
+- [ ] Compare models on comparable evaluation data.
+- [ ] Record the provenance and version of the dataset.
+- [ ] Pin dependencies and document the tested environment.
+- [ ] Expand tests for edge cases and leakage prevention.
+- [ ] Improve the report documentation so each figure and metric is explained.
+- [ ] Consider external validation on a compatible, independently sourced dataset where permitted.
+
+## Ethical Considerations
+
+Cancer-related data requires careful interpretation and responsible communication.
+
+OncoTrace is intended for computational research and education. The presence of a machine learning model does not imply that its predictions are sufficiently reliable for clinical use.
+
+Any future evaluation should consider dataset representativeness, potential biases, missingness, uncertainty, data-use permissions, and the consequences of incorrect predictions. Results should be communicated with enough context that exploratory associations are not mistaken for medical conclusions.
+
+## License
+
+The repository's software license should be chosen and added explicitly before public release. The license governing the code may differ from the terms governing the METABRIC dataset.
+
+A repository license does not automatically grant permission to redistribute the dataset or its derived contents. Check the source's terms before publishing raw data or outputs that may be restricted.
+
+## Acknowledgements
+
+This project builds on publicly documented work in cancer research, survival analysis, statistical computing, and machine learning.
+
+The METABRIC dataset is the data foundation for the current experiment. Please cite its original publication and dataset source according to their recommended citation instructions once the exact source used for this copy has been verified.
+
+---
+
+**OncoTrace — validating the data, studying survival patterns, and making computational cancer research more reproducible.**
